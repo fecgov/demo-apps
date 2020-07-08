@@ -1,0 +1,42 @@
+# Python CircleCI 2.0 configuration file
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+version: 2.1
+jobs:
+  build:
+    docker:
+      # CircleCI maintains a library of pre-built images documented at
+      # https://circleci.com/docs/2.0/circleci-images/
+      # use `-browsers` prefix for selenium tests, e.g. `<image_name>-browsers`
+
+      # Python
+      - image: circleci/python:3.7.4-stretch-node-browsers
+        environment:
+          TZ: America/New_York
+          DATABASE_URL: postgres://postgres@0.0.0.0/cfdm_cms_test
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install python dependencies
+          command: |
+            python3 -m venv .env
+            . .env/bin/activate
+            pip install -U pip setuptools wheel codecov
+            pip install -r requirements.txt
+
+      - run:
+          name: Installs for deploy
+          command: |
+            mkdir -p $HOME/bin
+            export PATH=$HOME/bin:$PATH
+            curl -L "https://cli.run.pivotal.io/stable?release=linux64-binary&version=6.34.0" | tar xzv -C $HOME/bin
+            cf install-plugin autopilot -f -r CF-Community
+      - deploy:
+          name: Deploy flask-demo
+          command: |
+            export PATH=$HOME/bin:$PATH
+            . .env/bin/activate
+            cf push flask-demo
