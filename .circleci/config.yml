@@ -40,4 +40,5 @@ jobs:
             export PATH=$HOME/bin:$PATH
             . .env/bin/activate
             cf auth "$FEC_CF_USERNAME_DEMO" "$FEC_CF_PASSWORD_DEMO"
+            cf target -o "$FEC_CF_ORG" -s "$FEC_CF_SPACE"
             cf push flask-demo
